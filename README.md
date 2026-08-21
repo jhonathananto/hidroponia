@@ -94,6 +94,28 @@ GET /api/auditoria/logs  /sesiones  /resumen
 - Drizzle ORM genera migraciones con `npx drizzle-kit generate` y aplica con `push`.
 - Ver tablas en pgAdmin: click derecho BD → Query Tool → `\dt` o navegador.
 
+### Migración NIT → RUC (Ecuador) — importante si ya creaste la BD antes del 21/08/2026
+Si ejecutaste `npx drizzle-kit push` cuando la columna aún se llamaba `nit`, debes renombrarla manualmente en pgAdmin / psql. En instalaciones nuevas este paso no es necesario.
+
+En pgAdmin: click derecho en BD `hidroponia` → **Query Tool** → ejecutar:
+
+```sql
+-- Renombra la columna nit a ruc (estándar SRI Ecuador, 13 dígitos)
+ALTER TABLE organizaciones RENAME COLUMN nit TO ruc;
+ALTER TABLE organizaciones ALTER COLUMN ruc TYPE varchar(13);
+-- Verificación
+\d organizaciones
+SELECT column_name, data_type, character_maximum_length
+FROM information_schema.columns
+WHERE table_name = 'organizaciones' AND column_name = 'ruc';
+```
+
+Alternativa por terminal:
+```bash
+psql "postgres://postgres:postgres@localhost:5432/hidroponia" -c "ALTER TABLE organizaciones RENAME COLUMN nit TO ruc;"
+psql "postgres://postgres:postgres@localhost:5432/hidroponia" -c "ALTER TABLE organizaciones ALTER COLUMN ruc TYPE varchar(13);"
+```
+
 ## Usuarios demo (seed)
 - admin@hidrofarm.demo / admin123 (admin)
 - tecnico@hidrofarm.demo / tecnico123
